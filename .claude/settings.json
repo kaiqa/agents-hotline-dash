@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python -m pytest tests/test_agents.py -v --no-header -q)",
+      "Bash(python)",
+      "Bash(python -m pytest tests/test_agents.py::test_create_agent -v --no-header -q)"
+    ]
+  }
+}

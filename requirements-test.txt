@@ -1,0 +1,9 @@
+-r requirements.txt
+pytest==8.3.4
+pytest-asyncio==0.23.8
+pytest-cov==6.0.0
+httpx==0.28.1
+pytest-mock==3.14.0
+faker==33.1.0
+aiosqlite==0.20.0
+greenlet==3.5.6
