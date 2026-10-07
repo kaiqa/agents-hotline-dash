@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#173b35">
+    <meta name="description" content="Sign in to the Agents Hotline dashboard">
+    <title>Agents Hotline Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/login.css">
+    <script src="/static/login.js" defer></script>
+</head>
+<body>
+    <main class="login-shell">
+        <section class="brand-panel" aria-label="Agents Hotline">
+            <div class="brand-topline">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32" fill="none"><path d="M16 4a4 4 0 0 0-4 4v9a4 4 0 0 0 8 0V8a4 4 0 0 0-4-4Z"/><path d="M7 15v2a9 9 0 0 0 18 0v-2M16 26v3m-5 0h10"/></svg>
+                </span>
+                <span class="brand-name">AGENTS <b>HOTLINE</b></span>
+            </div>
+            <div class="brand-copy">
+                <span class="eyebrow"><span></span> OPERATIONS CONSOLE</span>
+                <h1>Every agent.<br><em>One clear view.</em></h1>
+                <p>Sign in to manage your agents and keep the whole operation moving.</p>
+            </div>
+            <div class="brand-bottomline">
+                <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                <span>SECURE WORKSPACE</span>
+                <span class="brand-version">AH / 02</span>
+            </div>
+        </section>
+
+        <section class="form-panel">
+            <div class="login-form-wrap">
+                <div class="mobile-brand brand-topline">
+                    <span class="brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4a4 4 0 0 0-4 4v9a4 4 0 0 0 8 0V8a4 4 0 0 0-4-4Z"/><path d="M7 15v2a9 9 0 0 0 18 0v-2M16 26v3m-5 0h10"/></svg>
+                    </span>
+                    <span class="brand-name">AGENTS <b>HOTLINE</b></span>
+                </div>
+                <div class="form-heading">
+                    <span class="eyebrow form-eyebrow">WELCOME BACK</span>
+                    <h2>Agents Hotline Login</h2>
+                    <p>Enter your credentials to continue.</p>
+                </div>
+                <form id="login-form" autocomplete="on">
+                    <label for="username">Username</label>
+                    <div class="input-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>
+                        <input id="username" name="username" type="text" autocomplete="username" placeholder="Your username" required autofocus>
+                    </div>
+                    <div class="password-label-row"><label for="password">Password</label></div>
+                    <div class="input-wrap password-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2"/></svg>
+                        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+                        <button class="password-toggle" id="password-toggle" type="button" aria-label="Show password">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <p class="form-error" id="form-error" role="alert" aria-live="polite"></p>
+                    <button class="submit-button" id="submit-button" type="submit">
+                        <span>Sign in to dashboard</span>
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                    </button>
+                </form>
+                <p class="form-footer"><span class="lock-dot"></span> Protected access · Agents Hotline</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

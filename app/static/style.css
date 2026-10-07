@@ -1235,6 +1235,16 @@ body {
 @media (max-width: 768px) {
     .top-bar {
         padding: 0 16px;
+        height: auto;
+        min-height: var(--top-bar-height);
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .top-bar-right {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .page {
@@ -1242,11 +1252,14 @@ body {
     }
 
     .search-box input {
-        width: 180px;
+        width: 100%;
     }
 
     .export-buttons {
-        display: none;
+        display: flex;
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .stats-grid {

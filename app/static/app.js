@@ -2,7 +2,7 @@
  * Agent Hotline Dashboard - Frontend Application
  */
 const API_BASE = '/api';
-const WS_URL = `ws://${window.location.host}/ws`;
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
 let state = {
     agents: [],
@@ -145,6 +145,10 @@ async function exportAgentsCsv() {
     const response = await fetch(`${API_BASE}/agents/export/csv`);
     if (!response.ok) throw new Error('Export failed');
     return response.blob();
+}
+
+async function importAgents(agents) {
+    return apiRequest('/agents/import', { method: 'POST', body: agents });
 }
 
 async function fetchAgentStats() {
@@ -527,6 +531,82 @@ async function handleExportCsv() {
     }
 }
 
+function parseCsv(text) {
+    const rows = [];
+    let row = [];
+    let value = '';
+    let quoted = false;
+
+    for (let index = 0; index < text.length; index++) {
+        const character = text[index];
+        if (quoted) {
+            if (character === '"' && text[index + 1] === '"') {
+                value += '"';
+                index++;
+            } else if (character === '"') {
+                quoted = false;
+            } else {
+                value += character;
+            }
+        } else if (character === '"') {
+            quoted = true;
+        } else if (character === ',') {
+            row.push(value);
+            value = '';
+        } else if (character === '\n' || character === '\r') {
+            if (character === '\r' && text[index + 1] === '\n') index++;
+            row.push(value);
+            rows.push(row);
+            row = [];
+            value = '';
+        } else {
+            value += character;
+        }
+    }
+    if (value || row.length) {
+        row.push(value);
+        rows.push(row);
+    }
+
+    if (rows.length < 2) throw new Error('CSV must include a header and at least one agent');
+    const headers = rows.shift().map(header => header.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''));
+    const aliases = { active: 'is_active', scrollable_card: 'scrollable_agent_card' };
+    return rows.filter(values => values.some(field => field.trim())).map(values => {
+        const agent = {};
+        headers.forEach((header, index) => {
+            const key = aliases[header] || header;
+            if (!key || values[index] === undefined) return;
+            const field = values[index].trim();
+            if (key === 'is_active') {
+                agent[key] = ['yes', 'true', '1'].includes(field.toLowerCase());
+            } else {
+                agent[key] = field || null;
+            }
+        });
+        return agent;
+    });
+}
+
+async function handleImportFile(file, format) {
+    try {
+        const contents = await file.text();
+        let agents;
+        if (format === 'json') {
+            const data = JSON.parse(contents);
+            agents = Array.isArray(data) ? data : data.agents;
+            if (!Array.isArray(agents)) throw new Error('JSON must contain an array of agents');
+        } else {
+            agents = parseCsv(contents);
+        }
+        const imported = await importAgents(agents);
+        await fetchFilterOptions();
+        await fetchAgents();
+        showToast(`${imported.length} agent${imported.length === 1 ? '' : 's'} imported`, 'success');
+    } catch (e) {
+        showToast(`Import failed: ${e.message}`, 'error');
+    }
+}
+
 function setupEventListeners() {
     elements.sidebarToggle.addEventListener('click', () => {
         elements.sidebar.classList.toggle('open');
@@ -538,6 +618,12 @@ function setupEventListeners() {
     }
     if (elements.themeToggle) {
         elements.themeToggle.addEventListener('click', toggleTheme);
+    }
+    if (elements.logoutButton) {
+        elements.logoutButton.addEventListener('click', async () => {
+            await fetch('/auth/logout', { method: 'POST' });
+            window.location.assign('/login');
+        });
     }
     elements.navItems.forEach(item => {
         item.addEventListener('click', (e) => {
@@ -610,6 +696,18 @@ function setupEventListeners() {
     elements.refreshEmpty.addEventListener('click', fetchAgents);
     elements.exportJson.addEventListener('click', handleExportJson);
     elements.exportCsv.addEventListener('click', handleExportCsv);
+    elements.importJson.addEventListener('click', () => elements.importJsonFile.click());
+    elements.importCsv.addEventListener('click', () => elements.importCsvFile.click());
+    elements.importJsonFile.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) await handleImportFile(file, 'json');
+        event.target.value = '';
+    });
+    elements.importCsvFile.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) await handleImportFile(file, 'csv');
+        event.target.value = '';
+    });
 
     elements.modalClose.addEventListener('click', () => closeModal(elements.detailModal));
     elements.modalCloseBtn.addEventListener('click', () => closeModal(elements.detailModal));
@@ -730,6 +828,7 @@ async function init() {
         navItems: document.querySelectorAll('.nav-item'),
         pages: document.querySelectorAll('.page'),
         themeToggle: document.getElementById('theme-toggle'),
+        logoutButton: document.getElementById('logout-button'),
         themeToggleSun: document.querySelector('#theme-toggle .icon-sun'),
         themeToggleMoon: document.querySelector('#theme-toggle .icon-moon'),
         searchFilter: document.getElementById('searchFilter'),
@@ -749,6 +848,10 @@ async function init() {
         refreshEmpty: document.getElementById('refresh-empty'),
         exportJson: document.getElementById('export-json'),
         exportCsv: document.getElementById('export-csv'),
+        importJson: document.getElementById('import-json'),
+        importCsv: document.getElementById('import-csv'),
+        importJsonFile: document.getElementById('import-json-file'),
+        importCsvFile: document.getElementById('import-csv-file'),
         statTotal: document.getElementById('stat-total'),
         statActive: document.getElementById('stat-active'),
         statInactive: document.getElementById('stat-inactive'),

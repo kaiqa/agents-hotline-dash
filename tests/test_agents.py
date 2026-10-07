@@ -37,6 +37,43 @@ async def test_list_agents(async_client, async_session, sample_agent):
 
 
 @pytest.mark.asyncio
+async def test_import_agents(async_client, async_session):
+    payload = [{
+        "token": "imported_token",
+        "endpoint": "https://example.com/api",
+        "js_source": "https://example.com/widget.js",
+        "script": "widget",
+        "category": "support",
+        "language": "en",
+        "name": "Imported agent",
+        "id": 999,
+    }]
+    response = await async_client.post("/api/agents/import", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Imported agent"
+    assert data[0]["id"] != 999
+
+
+@pytest.mark.asyncio
+async def test_import_agents_rejects_invalid_batch(async_client, async_session):
+    payload = [{
+        "token": "valid_token",
+        "endpoint": "https://example.com/api",
+        "js_source": "https://example.com/widget.js",
+        "script": "widget",
+        "category": "support",
+        "language": "en",
+        "name": "Valid agent",
+    }, {"name": "Invalid agent"}]
+    response = await async_client.post("/api/agents/import", json=payload)
+    assert response.status_code == 422
+    agents_response = await async_client.get("/api/agents")
+    assert agents_response.json()["total"] == 0
+
+
+@pytest.mark.asyncio
 async def test_get_agent(async_client, async_session, sample_agent):
     response = await async_client.get(f"/api/agents/{sample_agent.id}")
     assert response.status_code == 200

@@ -76,6 +76,10 @@ docker compose logs -f app
 
 The dashboard will be available at `http://localhost:5686` (API on port 5686, MySQL on 3309).
 
+Before starting the app, set `LOGIN_USERNAME`, `LOGIN_PASSWORD`, and a strong random `SESSION_SECRET` in `.env`. Generate the session secret with `openssl rand -hex 32`. The dashboard, API, and WebSocket require a successful login. Set `SESSION_COOKIE_SECURE=true` when serving over HTTPS; leave it `false` for local HTTP development.
+
+For a separate read-only integration identity, set `AGENTS_API_USERNAME` and `AGENTS_API_PASSWORD`. These credentials use HTTP Basic authentication and are accepted only for `GET /api/agents?is_active=true`; they cannot access the dashboard or any other API route.
+
 ### Initialize Default Agents
 
 After the app starts, seed the included agent configurations:

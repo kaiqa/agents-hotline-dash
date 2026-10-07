@@ -39,6 +39,12 @@ services:
       - APP_HOST=0.0.0.0
       - APP_PORT=5687
       - DEBUG=false
+      - LOGIN_USERNAME=${LOGIN_USERNAME:-}
+      - LOGIN_PASSWORD=${LOGIN_PASSWORD:-}
+      - SESSION_SECRET=${SESSION_SECRET:-}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
+      - AGENTS_API_USERNAME=${AGENTS_API_USERNAME:-}
+      - AGENTS_API_PASSWORD=${AGENTS_API_PASSWORD:-}
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=${DB_USER:-agents_hotline_user}

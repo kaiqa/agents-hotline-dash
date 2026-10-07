@@ -125,6 +125,36 @@ async def get_filter_options(
     return {"categories": categories, "languages": languages}
 
 
+@router.post(
+    "/import",
+    response_model=List[AgentResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Import agents",
+    description="Create agents from a validated JSON batch.",
+)
+async def import_agents(
+    agents: List[AgentCreate],
+    db: AsyncSession = Depends(get_async_db),
+) -> List[AgentResponse]:
+    if not agents:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Import file is empty")
+
+    imported_agents = [Agent(**agent.model_dump()) for agent in agents]
+    db.add_all(imported_agents)
+    await db.commit()
+
+    responses = []
+    for agent in imported_agents:
+        await db.refresh(agent)
+        agent_response = AgentResponse.model_validate(agent)
+        responses.append(agent_response)
+        await websocket_manager.broadcast({
+            "type": "agent_created",
+            "data": agent_response.model_dump(mode="json"),
+        })
+    return responses
+
+
 @router.get(
     "/{agent_id}",
     response_model=AgentResponse,

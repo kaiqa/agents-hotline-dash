@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     app_host: str = Field(default="0.0.0.0", alias="APP_HOST")
     app_port: int = Field(default=5687, alias="APP_PORT")
     debug: bool = Field(default=False, alias="DEBUG")
+    login_username: str = Field(default="", alias="LOGIN_USERNAME")
+    login_password: str = Field(default="", alias="LOGIN_PASSWORD")
+    session_secret: str = Field(default="", alias="SESSION_SECRET")
+    session_cookie_secure: bool = Field(default=False, alias="SESSION_COOKIE_SECURE")
+    agents_api_username: str = Field(default="", alias="AGENTS_API_USERNAME")
+    agents_api_password: str = Field(default="", alias="AGENTS_API_PASSWORD")
 
     # Database
     db_host: str = Field(default="mysql", alias="DB_HOST")

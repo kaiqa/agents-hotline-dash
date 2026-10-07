@@ -18,6 +18,12 @@ from sqlalchemy.pool import StaticPool
 # Set test environment before importing app
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test.db"
+os.environ["LOGIN_USERNAME"] = "test-user"
+os.environ["LOGIN_PASSWORD"] = "test-password"
+os.environ["SESSION_SECRET"] = "test-session-secret-that-is-long-enough"
+os.environ["SESSION_COOKIE_SECURE"] = "false"
+os.environ["AGENTS_API_USERNAME"] = "agents-reader-test"
+os.environ["AGENTS_API_PASSWORD"] = "agents-reader-test-password"
 
 from app.config import Settings, get_settings
 from app.database import Base, get_async_db
@@ -155,7 +161,9 @@ async def override_get_async_db(async_session):
 @pytest.fixture(scope="function")
 def client(override_get_db) -> TestClient:
     """Create test client."""
-    return TestClient(app)
+    test_client = TestClient(app)
+    test_client.post("/auth/login", json={"username": "test-user", "password": "test-password"})
+    return test_client
 
 
 @pytest.fixture(scope="function")
@@ -163,6 +171,7 @@ async def async_client(override_get_async_db) -> AsyncGenerator[AsyncClient, Non
     """Create async test client."""
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await client.post("/auth/login", json={"username": "test-user", "password": "test-password"})
         yield client
 
 
