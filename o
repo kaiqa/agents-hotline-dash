@@ -1,0 +1,37 @@
+# Application
+APP_ENV=production
+APP_HOST=0.0.0.0
+APP_PORT=5687
+DEBUG=false
+
+# Database (MySQL)
+DB_HOST=mysql
+DB_PORT=3306
+DB_USER=agents_hotline_user
+DB_PASSWORD=agents_hotline_password
+DB_NAME=agents_hotline_db
+
+# MySQL Root Password
+MYSQL_ROOT_PASSWORD=RootPass123!
+
+# Database URL (alternative to individual settings)
+# DATABASE_URL=mysql+pymysql://agents_hotline_user:agents_hotline_password@mysql:3306/agents_hotline_db
+
+# Webhook Configuration (can be overridden via Settings API)
+WEBHOOK_HOST=0.0.0.0
+WEBHOOK_PORT=5687
+WEBHOOK_PATH=/webhook/agents
+
+# CORS
+CORS_ORIGINS=["http://localhost:5686", "http://100.66.60.70:5686", "http://100.122.130.97:5686"]
+
+# Dashboard login
+LOGIN_USERNAME=hotline-admin
+LOGIN_PASSWORD=b7d90e8119e842c47e41e9012d8857c1097c9e97b7999534
+SESSION_SECRET=34c678f21ddb3e67f20583a80ff090ff3a3fe1bb2b49c72f5ccd770129a488c9
+SESSION_COOKIE_SECURE=false
+AGENTS_API_USERNAME=agents-reader
+AGENTS_API_PASSWORD=22307a0480b31abac839ff9cd4edfcae9d7b7ee0ad02e2f5
+
+# Logging
+LOG_LEVEL=INFO

@@ -29,6 +29,7 @@ async def seed():
                 category=agent_data.get("category", "general"),
                 language=agent_data.get("language", "en"),
                 name=agent_data.get("name", key),
+                mode=agent_data.get("mode", "text"),
                 finger_hole=agent_data.get("finger-hole"),
                 scrollable_agent_card=agent_data.get("scrollable-agent-card"),
                 info=agent_data.get("info"),

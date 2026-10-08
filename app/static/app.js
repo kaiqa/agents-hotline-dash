@@ -14,6 +14,7 @@ let state = {
     statusFilter: '',
     categoryFilter: '',
     languageFilter: '',
+    modeFilter: '',
     sortBy: 'created_at:desc',
     currentAgent: null,
     ws: null,
@@ -92,6 +93,7 @@ async function fetchAgents() {
     if (state.statusFilter !== '') params.append('is_active', state.statusFilter === 'active' ? 'true' : 'false');
     if (state.categoryFilter !== '') params.append('category', state.categoryFilter);
     if (state.languageFilter !== '') params.append('language', state.languageFilter);
+    if (state.modeFilter !== '') params.append('mode', state.modeFilter);
     params.append('sort', state.sortBy);
     const data = await apiRequest(`/agents?${params.toString()}`);
     state.agents = data.items;
@@ -262,6 +264,11 @@ function renderAgentsTable() {
                     ${agent.is_active ? 'Active' : 'Inactive'}
                 </span>
             </td>
+            <td class="cell-mode">
+                <span class="mode-badge ${agent.mode === 'voice' ? 'voice' : 'text'}" data-mode-toggle data-id="${agent.id}" data-current-mode="${agent.mode}" title="Click to toggle" style="cursor: pointer;">
+                    ${agent.mode === 'voice' ? 'Voice' : 'Text'}
+                </span>
+            </td>
             <td><code>${escapeHtml(agent.token ? agent.token.substring(0, 20) + '...' : '-')}</code></td>
             <td><code>${escapeHtml(agent.endpoint ? agent.endpoint.substring(0, 30) + '...' : '-')}</code></td>
             <td>
@@ -275,6 +282,7 @@ function renderAgentsTable() {
                 <div class="action-buttons">
                     <button class="action-btn view" data-action="view" data-id="${agent.id}" title="View/Edit Details">👁</button>
                     <button class="action-btn toggle" data-action="status" data-id="${agent.id}" title="Toggle Active/Inactive">↻</button>
+                    <button class="action-btn toggle" data-action="mode" data-id="${agent.id}" title="Toggle Text/Voice">🔊</button>
                     <button class="action-btn download" data-action="download" data-id="${agent.id}" title="Download JSON">⬇</button>
                     <button class="action-btn delete" data-action="delete" data-id="${agent.id}" title="Delete">🗑</button>
                     <button class="action-btn" data-action="duplicate" data-id="${agent.id}" title="Duplicate" style="font-size: 0.875rem;">⧉</button>
@@ -298,6 +306,15 @@ function renderAgentsTable() {
             const id = parseInt(badge.dataset.id, 10);
             const currentStatus = badge.dataset.currentStatus === 'active';
             cycleAgentStatus(id, !currentStatus);
+        });
+    });
+
+    tbody.querySelectorAll('[data-mode-toggle]').forEach(badge => {
+        badge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(badge.dataset.id, 10);
+            const currentMode = badge.dataset.currentMode;
+            cycleAgentMode(id, currentMode === 'text' ? 'voice' : 'text');
         });
     });
 
@@ -385,6 +402,14 @@ function renderAgentDetail(agent) {
                 </select>
             </div>
 
+            <div class="detail-label">Mode</div>
+            <div class="detail-value">
+                <select id="edit-mode" style="width:100%;padding:6px;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg-primary);color:var(--color-text-primary);font-size:0.875rem;">
+                    <option value="text" ${agent.mode === 'text' ? 'selected' : ''}>Text</option>
+                    <option value="voice" ${agent.mode === 'voice' ? 'selected' : ''}>Voice</option>
+                </select>
+            </div>
+
             <div class="detail-label">Created At</div>
             <div class="detail-value">${new Date(agent.created_at).toLocaleString()}</div>
 
@@ -446,6 +471,9 @@ function handleAction(action, id) {
         case 'status':
             if (agent) cycleAgentStatus(id, !agent.is_active);
             break;
+        case 'mode':
+            if (agent) cycleAgentMode(id, agent.mode === 'text' ? 'voice' : 'text');
+            break;
         case 'delete':
             showConfirm('Delete Agent', 'Are you sure you want to permanently delete this agent? This action cannot be undone.', () => performDelete(id));
             break;
@@ -466,6 +494,20 @@ async function cycleAgentStatus(id, isActive) {
     } catch (e) {
         showToast(`Failed to update: ${e.message}`, 'error');
     }
+}
+
+async function cycleAgentMode(id, mode) {
+    try {
+        await updateAgentMode(id, mode);
+        showToast(`Agent mode set to ${mode}`, 'success');
+        fetchAgents();
+    } catch (e) {
+        showToast(`Failed to update mode: ${e.message}`, 'error');
+    }
+}
+
+async function updateAgentMode(id, mode) {
+    return apiRequest(`/agents/${id}`, { method: 'PATCH', body: { mode } });
 }
 
 async function performDelete(id) {
@@ -570,7 +612,7 @@ function parseCsv(text) {
 
     if (rows.length < 2) throw new Error('CSV must include a header and at least one agent');
     const headers = rows.shift().map(header => header.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''));
-    const aliases = { active: 'is_active', scrollable_card: 'scrollable_agent_card' };
+    const aliases = { active: 'is_active', scrollable_card: 'scrollable_agent_card', mode: 'mode' };
     return rows.filter(values => values.some(field => field.trim())).map(values => {
         const agent = {};
         headers.forEach((header, index) => {
@@ -660,6 +702,11 @@ function setupEventListeners() {
         state.page = 1;
         fetchAgents();
     });
+    elements.modeFilter.addEventListener('change', () => {
+        state.modeFilter = elements.modeFilter.value;
+        state.page = 1;
+        fetchAgents();
+    });
 
     elements.sortSelect.addEventListener('change', () => {
         state.sortBy = elements.sortSelect.value;
@@ -684,10 +731,12 @@ function setupEventListeners() {
         elements.statusFilter.value = '';
         elements.categoryFilter.value = '';
         elements.languageFilter.value = '';
+        elements.modeFilter.value = '';
         state.search = '';
         state.statusFilter = '';
         state.categoryFilter = '';
         state.languageFilter = '';
+        state.modeFilter = '';
         state.page = 1;
         fetchAgents();
     });
@@ -729,6 +778,7 @@ function setupEventListeners() {
                 endpoint: document.getElementById('edit-endpoint').value,
                 js_source: document.getElementById('edit-js-source').value,
                 script: document.getElementById('edit-script').value,
+                mode: document.getElementById('edit-mode').value,
                 finger_hole: document.getElementById('edit-finger-hole').value || null,
                 scrollable_agent_card: document.getElementById('edit-scrollable-card').value || null,
                 info: document.getElementById('edit-info').value || null,
@@ -835,6 +885,7 @@ async function init() {
         statusFilter: document.getElementById('statusFilter'),
         categoryFilter: document.getElementById('categoryFilter'),
         languageFilter: document.getElementById('languageFilter'),
+        modeFilter: document.getElementById('modeFilter'),
         sortSelect: document.getElementById('sortSelect'),
         pageSizeSelect: document.getElementById('pageSizeSelect'),
         clearFiltersBtn: document.getElementById('clearFiltersBtn'),

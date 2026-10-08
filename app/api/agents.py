@@ -33,6 +33,7 @@ async def list_agents(
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
     category: Optional[str] = Query(None, description="Filter by category"),
     language: Optional[str] = Query(None, description="Filter by language"),
+    mode: Optional[str] = Query(None, description="Filter by mode (text or voice)"),
     sort: Optional[str] = Query("created_at:desc", description="Sort field:direction"),
     db: AsyncSession = Depends(get_async_db),
 ) -> AgentListResponse:
@@ -72,6 +73,10 @@ async def list_agents(
         query = query.where(Agent.language == language)
         count_query = count_query.where(Agent.language == language)
 
+    if mode:
+        query = query.where(Agent.mode == mode)
+        count_query = count_query.where(Agent.mode == mode)
+
     total_result = await db.execute(count_query)
     total = total_result.scalar_one()
 
@@ -82,6 +87,7 @@ async def list_agents(
                 "name": Agent.name,
                 "category": Agent.category,
                 "language": Agent.language,
+                "mode": Agent.mode,
                 "created_at": Agent.created_at,
                 "updated_at": Agent.updated_at,
             }.get(sort_field, Agent.created_at)
@@ -354,7 +360,7 @@ async def export_agents_csv(
     writer = csv.writer(output)
     writer.writerow([
         "ID", "Name", "Token", "Endpoint", "Environment", "JS Source",
-        "Script", "Category", "Language", "Active", "Info", "Finger Hole",
+        "Script", "Category", "Language", "Mode", "Active", "Info", "Finger Hole",
         "Scrollable Card", "Created At", "Updated At",
     ])
     for a in agents:
@@ -368,6 +374,7 @@ async def export_agents_csv(
             a.script,
             a.category,
             a.language,
+            a.mode,
             "yes" if a.is_active else "no",
             a.info or "",
             a.finger_hole or "",
@@ -412,10 +419,16 @@ async def get_agent_stats(
     )
     language_counts = {row[0]: row[1] for row in language_result.all()}
 
+    mode_result = await db.execute(
+        select(Agent.mode, func.count(Agent.id)).group_by(Agent.mode)
+    )
+    mode_counts = {row[0]: row[1] for row in mode_result.all()}
+
     return {
         "total_agents": total,
         "active_agents": active,
         "inactive_agents": inactive,
         "category_counts": category_counts,
         "language_counts": language_counts,
+        "mode_counts": mode_counts,
     }

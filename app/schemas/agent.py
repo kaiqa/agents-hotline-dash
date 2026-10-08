@@ -2,6 +2,12 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
+from enum import Enum
+
+
+class AgentMode(str, Enum):
+    TEXT = "text"
+    VOICE = "voice"
 
 
 class AgentBase(BaseModel):
@@ -14,6 +20,7 @@ class AgentBase(BaseModel):
     category: str = Field(..., min_length=1, max_length=100, description="Agent category")
     language: str = Field(..., min_length=1, max_length=20, description="Agent language code")
     name: str = Field(..., min_length=1, max_length=255, description="Agent display name")
+    mode: AgentMode = Field(default=AgentMode.TEXT, description="Agent mode: text or voice")
     finger_hole: Optional[str] = Field(None, max_length=255, description="Image path for finger hole")
     scrollable_agent_card: Optional[str] = Field(None, max_length=255, description="Image path for scrollable card")
     info: Optional[str] = Field(None, description="Agent description/info")
@@ -34,6 +41,7 @@ class AgentUpdate(BaseModel):
     category: Optional[str] = Field(None, min_length=1, max_length=100)
     language: Optional[str] = Field(None, min_length=1, max_length=20)
     name: Optional[str] = Field(None, min_length=1, max_length=255)
+    mode: Optional[AgentMode] = Field(None, description="Agent mode: text or voice")
     finger_hole: Optional[str] = Field(None, max_length=255)
     scrollable_agent_card: Optional[str] = Field(None, max_length=255)
     info: Optional[str] = Field(None)
@@ -51,6 +59,7 @@ class AgentResponse(AgentBase):
 
     id: int
     is_active: bool
+    mode: AgentMode
     created_at: datetime
     updated_at: datetime
 
@@ -77,6 +86,7 @@ class AgentExport(BaseModel):
     category: str
     language: str
     name: str
+    mode: AgentMode
     finger_hole: Optional[str] = None
     scrollable_agent_card: Optional[str] = None
     info: Optional[str] = None

@@ -13,6 +13,11 @@ class AgentStatus(str, Enum):
     INACTIVE = "inactive"
 
 
+class AgentMode(str, Enum):
+    TEXT = "text"
+    VOICE = "voice"
+
+
 class Agent(Base):
     """Agent configuration managed by Agent Hotline."""
 
@@ -31,6 +36,7 @@ class Agent(Base):
     scrollable_agent_card: Mapped[str] = mapped_column(String(255), nullable=True)
     info: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    mode: Mapped[str] = mapped_column(String(20), default="text", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), nullable=False
     )
